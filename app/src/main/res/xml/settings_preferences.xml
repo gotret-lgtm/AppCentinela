@@ -1,35 +1,27 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceCategory app:title="Protección Principal">
+    <PreferenceCategory app:title="Control de Protección">
 
         <SwitchPreferenceCompat
             app:key="key_protection_enabled"
-            app:title="Activar protección"
-            app:summary="Habilita la monitorización de accesos"
-            app:defaultValue="true" />
-
-        <!-- Nueva lista de opciones para el modo de monitorización -->
-        <ListPreference
-            app:key="key_monitoring_mode"
-            app:title="Modo de monitorización"
-            app:summary="Elige qué accesos registrar"
-            app:entries="@array/monitoring_mode_entries"
-            app:entryValues="@array/monitoring_mode_values"
-            app:defaultValue="failed"
-            app:dependency="key_protection_enabled" />
+            app:title="Activar Protección General"
+            app:summary="Activa o desactiva la monitorización de la aplicación." />
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="Acciones a Realizar">
+    <PreferenceCategory app:title="Configuración de Registros">
 
         <SwitchPreferenceCompat
-            app:key="key_capture_photo"
-            app:title="Tomar foto del acceso"
-            app:summary="Captura una imagen con la cámara frontal"
-            app:dependency="key_protection_enabled"
-            app:defaultValue="true" />
+            app:key="key_log_failed_attempts"
+            app:title="Registrar accesos fallidos"
+            app:summary="Crea un registro por cada intento de desbloqueo fallido."
+            app:dependency="key_protection_enabled" />
 
-        <!-- ... otras acciones futuras (video, audio) ... -->
+        <SwitchPreferenceCompat
+            app:key="key_log_successful_attempts"
+            app:title="Registrar accesos exitosos"
+            app:summary="Crea un registro por cada desbloqueo exitoso."
+            app:dependency="key_protection_enabled" />
 
     </PreferenceCategory>
 

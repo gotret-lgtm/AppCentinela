@@ -11,26 +11,25 @@ import androidx.preference.PreferenceManager
 class DeviceAdmin : DeviceAdminReceiver() {
 
     override fun onPasswordFailed(context: Context, intent: Intent) {
-        // ... tu código para leer las SharedPreferences ...
-        Log.d("AppCentinelaDebug", "onPasswordFailed -> ProtectionEnabled: $isProtectionEnabled, ShouldCapture: $shouldCapturePhoto")
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        val isProtectionEnabled = sharedPreferences.getBoolean("key_protection_enabled", false)
 
-        if (isProtectionEnabled && shouldCapturePhoto) {
-            Log.d("AppCentinelaDebug", "CONDICIÓN CUMPLIDA. Lanzando CaptureService.")
+        // Leemos el valor del nuevo interruptor para accesos fallidos
+        val shouldLogFailed = sharedPreferences.getBoolean("key_log_failed_attempts", false)
 
-            // ===== CAMBIA ESTO =====
-            // val activityIntent = Intent(context, CaptureActivity::class.java) ...
-            // context.startActivity(activityIntent)
+        Log.d("AppCentinelaDebug", "onPasswordFailed -> ProtectionEnabled: $isProtectionEnabled, ShouldLogFailed: $shouldLogFailed")
 
-            // ===== POR ESTO =====
+        // Si la protección general Y el registro de fallos están activos...
+        if (isProtectionEnabled && shouldLogFailed) {
+            Log.d("AppCentinelaDebug", "CONDICIÓN FALLIDA CUMPLIDA. Lanzando CaptureService.")
+
             val serviceIntent = Intent(context, CaptureService::class.java).apply {
-                putExtra("IS_SUCCESSFUL", false)
+                putExtra("IS_SUCCESSFUL", false) // Indicamos que fue un fallo
             }
-
-            // Usamos startForegroundService que es obligatorio para API 26+
             ContextCompat.startForegroundService(context, serviceIntent)
 
         } else {
-            Log.d("AppCentinelaDebug", "CONDICIÓN NO CUMPLIDA. No se lanzará CaptureActivity.")
+            Log.d("AppCentinelaDebug", "CONDICIÓN FALLIDA NO CUMPLIDA. No se hará nada.")
         }
     }
 

@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Permisos de la aplicación -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -21,7 +22,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCentinela">
 
-        <!-- Actividad Principal (la que se lanza al inicio) -->
+        <!-- Actividad Principal -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -31,28 +32,19 @@
             </intent-filter>
         </activity>
 
-        <!-- Otras Actividades de la App (una sola declaración para cada una) -->
+        <!-- Otras Actividades -->
         <activity
             android:name=".SettingsActivity"
             android:label="Configuración" />
-
-        <service
-            android:name=".CaptureService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="camera" />
-
         <activity
             android:name=".GalleryActivity"
             android:label="Registros de Acceso" />
-
         <activity
             android:name=".DetailActivity"
             android:label="Detalle del Registro" />
 
-
-
-        <receiver>
+        <!-- Componentes de Segundo Plano -->
+        <receiver
             android:name=".DeviceAdmin"
             android:exported="true"
             android:permission="android.permission.BIND_DEVICE_ADMIN">
@@ -62,19 +54,23 @@
             <intent-filter>
                 <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
             </intent-filter>
-    </receiver>
+        </receiver>
 
-        <!-- Nota: Si ya no usas CaptureService.kt, puedes borrar este bloque <service> -->
-        <service
-            android:name=".CaptureService"
-            android:enabled="true"
-            android:exported="false" />
-
-        <receiver android:name=".UnlockReceiver" android:exported="false">
+        <receiver
+            android:name=".UnlockReceiver"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.USER_PRESENT" />
             </intent-filter>
         </receiver>
+
+        <!-- ===== CORRECCIÓN #2: SERVICIO DECLARADO ===== -->
+        <!-- Esta declaración es necesaria para que el sistema reconozca el servicio -->
+        <service
+            android:name=".CaptureService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="camera" />
 
     </application>
 
