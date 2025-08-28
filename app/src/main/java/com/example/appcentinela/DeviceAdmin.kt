@@ -7,6 +7,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 
 class DeviceAdmin : DeviceAdminReceiver() {
 
@@ -21,15 +24,15 @@ class DeviceAdmin : DeviceAdminReceiver() {
 
         // Si la protección general Y el registro de fallos están activos...
         if (isProtectionEnabled && shouldLogFailed) {
-            Log.d("AppCentinelaDebug", "CONDICIÓN FALLIDA CUMPLIDA. Lanzando CaptureService.")
+            Log.d("AppCentinelaDebug", "CONDICIÓN FALLIDA CUMPLIDA. Encolando trabajo en WorkManager.")
 
-            val serviceIntent = Intent(context, CaptureService::class.java).apply {
-                putExtra("IS_SUCCESSFUL", false) // Indicamos que fue un fallo
-            }
-            ContextCompat.startForegroundService(context, serviceIntent)
+            val inputData = workDataOf("IS_SUCCESSFUL" to false)
 
-        } else {
-            Log.d("AppCentinelaDebug", "CONDICIÓN FALLIDA NO CUMPLIDA. No se hará nada.")
+            val captureWorkRequest = OneTimeWorkRequestBuilder<CaptureWorker>()
+                .setInputData(inputData)
+                .build()
+
+            WorkManager.getInstance(context).enqueue(captureWorkRequest)
         }
     }
 

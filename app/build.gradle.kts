@@ -56,4 +56,5 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-service:2.6.2")
     implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("com.github.bumptech.glide:glide:4.15.1")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 }
