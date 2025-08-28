@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">AppCentinela</string>
+    <string-array name="monitoring_mode_entries">
+        <item>Solo accesos fallidos</item>
+        <item>Accesos fallidos y exitosos</item>
+    </string-array>
+
+    <string-array name="monitoring_mode_values">
+        <item>failed</item>
+        <item>all</item>
+    </string-array>
+</resources>
