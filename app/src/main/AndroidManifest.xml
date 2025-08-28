@@ -22,7 +22,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCentinela">
 
-        <!-- Actividad Principal -->
+        <!-- Actividades -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -31,8 +31,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- Otras Actividades -->
         <activity
             android:name=".SettingsActivity"
             android:label="Configuración" />
@@ -56,16 +54,15 @@
             </intent-filter>
         </receiver>
 
+        <!-- ===== CORRECCIÓN APLICADA AQUÍ ===== -->
         <receiver
             android:name=".UnlockReceiver"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.USER_PRESENT" />
             </intent-filter>
         </receiver>
 
-        <!-- ===== CORRECCIÓN #2: SERVICIO DECLARADO ===== -->
-        <!-- Esta declaración es necesaria para que el sistema reconozca el servicio -->
         <service
             android:name=".CaptureService"
             android:enabled="true"
