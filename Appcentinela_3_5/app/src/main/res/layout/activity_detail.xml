@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".DetailActivity">
+
+    <!-- El ID 'textDetailDate' coincide con el código Kotlin -->
+    <TextView
+        android:id="@+id/textDetailDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        tools:text="Fecha: 26/08/2025" />
+
+    <!-- El ID 'textDetailTime' coincide con el código Kotlin -->
+    <TextView
+        android:id="@+id/textDetailTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textSize="18sp"
+        tools:text="Hora: 23:03:58" />
+
+    <!-- El ID 'textDetailStatus' coincide con el código Kotlin -->
+    <TextView
+        android:id="@+id/textDetailStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textSize="18sp"
+        tools:text="Estado: Fallido" />
+
+    <!-- El ID 'imageDetailPhoto' coincide con el código Kotlin -->
+    <ImageView
+        android:id="@+id/imageDetailPhoto"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginTop="16dp"
+        android:scaleType="centerCrop"
+        android:background="#E0E0E0"
+        android:contentDescription="Foto del intruso" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Video: (Próximamente)" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Apps usadas: (Próximamente)" />
+
+    <!-- El ID 'btnDelete' coincide con el código Kotlin -->
+    <Button
+        android:id="@+id/btnDelete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Borrar Registro" />
+
+</LinearLayout>

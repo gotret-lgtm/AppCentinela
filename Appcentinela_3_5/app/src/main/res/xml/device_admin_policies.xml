@@ -1,0 +1,6 @@
+<device-admin>
+    <uses-policies>
+        <!-- Esta política es la que nos permite monitorear los intentos de login -->
+        <watch-login />
+    </uses-policies>
+</device-admin>

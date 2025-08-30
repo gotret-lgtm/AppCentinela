@@ -1,0 +1,36 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="Protección Principal">
+
+        <SwitchPreferenceCompat
+            app:key="key_protection_enabled"
+            app:title="Activar protección"
+            app:summary="Habilita la monitorización de accesos"
+            app:defaultValue="true" />
+
+        <!-- Nueva lista de opciones para el modo de monitorización -->
+        <ListPreference
+            app:key="key_monitoring_mode"
+            app:title="Modo de monitorización"
+            app:summary="Elige qué accesos registrar"
+            app:entries="@array/monitoring_mode_entries"
+            app:entryValues="@array/monitoring_mode_values"
+            app:defaultValue="failed"
+            app:dependency="key_protection_enabled" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Acciones a Realizar">
+
+        <SwitchPreferenceCompat
+            app:key="key_capture_photo"
+            app:title="Tomar foto del acceso"
+            app:summary="Captura una imagen con la cámara frontal"
+            app:dependency="key_protection_enabled"
+            app:defaultValue="true" />
+
+        <!-- ... otras acciones futuras (video, audio) ... -->
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
