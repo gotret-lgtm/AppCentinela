@@ -1,6 +1,9 @@
 package com.example.appcentinela
 
 import android.app.Notification
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -10,34 +13,17 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import com.google.common.util.concurrent.ListenableFuture
-import com.example.appcentinela.data.LogEntry
-import com.example.appcentinela.data.LogEntryDao
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.io.File
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
-import javax.inject.Inject
 
-// AÑADIDO: Anotación para permitir la inyección de dependencias con Hilt.
-@AndroidEntryPoint
 class CaptureService : LifecycleService() {
-
-    // AÑADIDO: Inyección de la dependencia del DAO para acceder a la base de datos.
-    @Inject
-    lateinit var logEntryDao: LogEntryDao
-
-    // AÑADIDO: Job y Scope para ejecutar operaciones de base de datos en un hilo secundario.
-    private val serviceJob = SupervisorJob()
-    private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
 
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
     private var imageCapture: ImageCapture? = null
-
-    // AÑADIDO: ID constante para la notificación.
     private val NOTIFICATION_ID = 1
 
     override fun onCreate() {
@@ -45,36 +31,17 @@ class CaptureService : LifecycleService() {
         cameraProviderFuture = ProcessCameraProvider.getInstance(this)
     }
 
-    // MODIFICADO: Este es el corazón del Foreground Service.
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-
-        // Crear y mostrar la notificación para poner el servicio en primer plano.
         val notification = createNotification()
         startForeground(NOTIFICATION_ID, notification)
-
-        // Iniciar la lógica de captura.
         startCameraAndCapture()
-
-        // Usamos START_NOT_STICKY porque solo queremos que se ejecute cuando se le llama,
-        // no que el sistema lo reinicie por su cuenta.
         return START_NOT_STICKY
     }
 
-    // AÑADIDO: Función para crear la notificación del servicio.
-    private fun createNotification(): Notification {
-        return NotificationCompat.Builder(this, AppCentinela.CHANNEL_ID)
-            .setContentTitle("AppCentinela")
-            .setContentText("Protección activa, procesando evento.")
-            .setSmallIcon(R.drawable.ic_security) // IMPORTANTE: Crea un icono llamado 'ic_security' en tu carpeta drawable.
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
-    }
-
     private fun startCameraAndCapture() {
-        // MODIFICADO: Desacoplamos la creación del log. Lo creamos inmediatamente.
-        // De esta forma, aunque falle la foto, el desbloqueo queda registrado.
-        createSuccessLogEntry()
+        // Primero guardamos el log en SharedPreferences, luego intentamos tomar la foto.
+        saveSuccessLog()
 
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
@@ -82,33 +49,86 @@ class CaptureService : LifecycleService() {
         }, ContextCompat.getMainExecutor(this))
     }
 
+    // --- LÓGICA DE GUARDADO EN SHAREDPREFERENCES (LA ÚNICA QUE USA TU APP) ---
+
+    private fun saveSuccessLog() {
+        val timestamp: Long = System.currentTimeMillis()
+        val wasSuccessful: Boolean = true
+        // CORREGIDO: Usamos una cadena vacía en lugar de null
+        val photoPath: String = ""
+
+        try {
+            val sharedPreferences = getSharedPreferences("AppCentinelaPrefs", Context.MODE_PRIVATE)
+            val editor = sharedPreferences.edit()
+            val gson = Gson()
+
+            val logs = loadLogs(sharedPreferences).toMutableList()
+
+            // Ahora los tipos coinciden perfectamente con la definición de IntrusionLog
+            val newLog = IntrusionLog(
+                timestamp = timestamp,
+                wasSuccessful = wasSuccessful,
+                photoPath = photoPath
+            )
+            logs.add(0, newLog)
+
+            val jsonLogs = gson.toJson(logs)
+            editor.putString("intrusion_logs", jsonLogs)
+            editor.apply()
+
+            Log.d("CaptureService", "Registro de 'Ingreso Exitoso' guardado en SharedPreferences.")
+
+        } catch (e: Exception) {
+            Log.e("CaptureService", "Error al guardar el log en SharedPreferences", e)
+        }
+    }
+
+    private fun loadLogs(sharedPreferences: SharedPreferences): List<IntrusionLog> {
+        val gson = Gson()
+        val json = sharedPreferences.getString("intrusion_logs", null)
+        return if (json != null) {
+            val type = object : TypeToken<ArrayList<IntrusionLog>>() {}.type
+            gson.fromJson(json, type)
+        } else {
+            emptyList()
+        }
+    }
+
+    // --- LÓGICA DE LA CÁMARA (SIN CAMBIOS) ---
+
+    private fun createNotification(): Notification {
+        return NotificationCompat.Builder(this, AppCentinela.CHANNEL_ID)
+            .setContentTitle("AppCentinela")
+            .setContentText("Protección activa, procesando evento.")
+            // CORREGIDO: Usamos un icono de sistema de Android que siempre existe.
+            .setSmallIcon(android.R.drawable.ic_lock_lock)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+    }
+
     private fun bindCamera(cameraProvider: ProcessCameraProvider) {
         val cameraSelector = CameraSelector.Builder()
             .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
             .build()
-
         imageCapture = ImageCapture.Builder().build()
-
         try {
             cameraProvider.unbindAll()
             cameraProvider.bindToLifecycle(this, cameraSelector, imageCapture)
             takePicture()
         } catch (exc: Exception) {
             Log.e("CaptureService", "Error al vincular la cámara: ${exc.message}")
-            stopServiceAndCleanup() // Asegurarse de parar si hay un error aquí
+            stopServiceAndCleanup()
         }
     }
 
     private fun takePicture() {
         val imageCapture = this.imageCapture ?: run {
             Log.e("CaptureService", "ImageCapture no está inicializado.")
-            stopServiceAndCleanup() // Parar si imageCapture es nulo
+            stopServiceAndCleanup()
             return
         }
-
         val photoFile = createFile()
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
         imageCapture.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(this),
@@ -116,30 +136,15 @@ class CaptureService : LifecycleService() {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                     val msg = "Foto guardada con éxito: ${outputFileResults.savedUri}"
                     Log.d("CaptureService", msg)
-                    // La tarea ha finalizado, ahora podemos detener el servicio.
+                    // Aquí se podría actualizar el log con la ruta de la imagen, pero no es esencial para el fix.
                     stopServiceAndCleanup()
                 }
-
                 override fun onError(exception: ImageCaptureException) {
                     Log.e("CaptureService", "Error al guardar la foto", exception)
-                    // La tarea ha fallado, pero también debemos detener el servicio.
                     stopServiceAndCleanup()
                 }
             }
         )
-    }
-
-    // AÑADIDO: Función para crear el registro de "Ingreso Exitoso" en la base de datos.
-    private fun createSuccessLogEntry() {
-        serviceScope.launch {
-            val logEntry = LogEntry(
-                timestamp = System.currentTimeMillis(),
-                type = "Ingreso Exitoso",
-                imagePath = null // El path se podría actualizar después si la foto se guarda bien
-            )
-            logEntryDao.insert(logEntry)
-            Log.d("CaptureService", "Registro de Ingreso Exitoso creado en la base de datos.")
-        }
     }
 
     private fun createFile(): File {
@@ -156,20 +161,15 @@ class CaptureService : LifecycleService() {
             mediaDir else filesDir
     }
 
-    // AÑADIDO: Función centralizada para detener el servicio y limpiar recursos.
     private fun stopServiceAndCleanup() {
         Log.d("CaptureService", "Tarea completada. Deteniendo el servicio.")
         cameraProviderFuture.get()?.unbindAll()
-        // Detiene el modo de primer plano y elimina la notificación.
         stopForeground(STOP_FOREGROUND_REMOVE)
-        // Detiene el servicio completamente.
         stopSelf()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        // Cancelar todas las coroutines cuando el servicio es destruido.
-        serviceJob.cancel()
         Log.d("CaptureService", "Servicio destruido.")
     }
 }

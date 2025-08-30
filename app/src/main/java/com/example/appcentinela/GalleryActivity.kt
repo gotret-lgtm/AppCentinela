@@ -12,6 +12,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
+
 class GalleryActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
